@@ -1,22 +1,29 @@
 version: 0.2
+    
 phases:
-pre_build:
-commands:
-- echo Logging in to Amazon ECR...
-- aws --version
-- $(aws ecr get-login --region $AWS_DEFAULT_REGION --no-include-email)
-- REPOSITORY_URI=796662406405.dkr.ecr.ap-south-1.amazonaws.com/ticketing-app
-- COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
-- IMAGE_TAG=${COMMIT_HASH:=latest}
-build:
-commands:
-- echo Build started on `date`
-- echo Building the Docker image...
-- docker build -t $REPOSITORY_URI:latest .
-- docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
-post_build:
-commands:
-- echo Build completed on `date`
-- echo Pushing the Docker images...
-- docker push $REPOSITORY_URI:latest
-- docker push $REPOSITORY_URI:$IMAGE_TAG
+  install:
+    runtime-versions:
+      nodejs: latest
+    commands:
+      - echo Installing app dependencies...
+      - echo Run "npm install"...
+      - npm install
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | head -c 7) 
+  pre_build:
+    commands:
+      - echo Entered the pre_build phase...
+      - echo Logging in to Amazon ECR...
+      - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
+      - echo Build files...
+      - npm build
+  build:
+    commands:
+      - echo Entered the build phase...
+      - echo Building the Docker image...
+      - cd docker-distribution
+      - docker build -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$ENV -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$COMMIT_HASH .
+  post_build:
+    commands:
+      - echo Entered the post_build phase...
+      - echo Pushing the Docker image...
+      - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME
