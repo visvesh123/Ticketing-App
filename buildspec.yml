@@ -5,7 +5,7 @@ commands:
 - echo Logging in to Amazon ECR...
 - aws --version
 - $(aws ecr get-login --region $AWS_DEFAULT_REGION --no-include-email)
-- REPOSITORY_URI=${REPO_ECR}
+- REPOSITORY_URI=796662406405.dkr.ecr.ap-south-1.amazonaws.com/ticketing-app
 - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
 - IMAGE_TAG=${COMMIT_HASH:=latest}
 build:
